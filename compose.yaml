@@ -1,0 +1,60 @@
+version: '3.11'
+services: 
+  django_gunicorn:
+    volumes:
+      - static_files:/app/static
+      - .:/app
+    env_file:
+      - .env
+    build:
+      context: .
+    entrypoint : ["./entrypoint.sh"]
+    expose:
+      - 8000
+    depends_on :
+      - postgres 
+  
+  background_tasks:
+    env_file:
+      - .env
+    build: .
+    volumes:
+      - .:/app
+    entrypoint : ["./backgroundentypoint.sh"]
+    depends_on:
+      - django_gunicorn
+      - postgres
+
+
+
+  nginx:
+    build: ./nginx
+    ports:
+      - "8000:80"
+    depends_on: 
+      - django_gunicorn
+
+  postgres:
+    image: postgres
+    expose:
+      - 5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+  
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${DEFAULT_PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${DEFAULT_PGADMIN_PASSWORD}
+    ports:
+      - "8080:80"  # Access pgAdmin externally
+    depends_on:
+      - postgres
+
+volumes:
+  static_files:
+  postgres_data:

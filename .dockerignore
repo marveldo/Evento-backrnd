@@ -1,0 +1,8 @@
+/.git
+/.gitignore
+/Dockerfile
+/.env
+/compose.yaml
+/db.sqlite3
+__pycache__
+migrations
