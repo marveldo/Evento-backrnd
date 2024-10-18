@@ -7,5 +7,6 @@ urlpatterns = [
     path('login/', LoginUser.as_view()),
     path('google/',GoogleSigninView.as_view()),
     path('users/', UserPostViewset.as_view({'get':'list'})),
-    path('refresh/', RefreshUser.as_view())
+    path('refresh/', RefreshUser.as_view()),
+    path('current-user/', UserPostViewset.as_view({'get':'me'}))
 ]

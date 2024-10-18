@@ -5,11 +5,14 @@ from .models import Event,EventTag
 from .serializers import EventSerializer
 from rest_framework import status
 from rest_framework.request import Request
+from api.utils import error_validation,success_response
+from rest_framework import permissions
+
 # Create your views here.
 
 
 
-class EventViewset(viewsets.GenericViewSet, mixins.ListModelMixin):
+class EventViewset(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.CreateModelMixin):
     """View to get all events
 
     Args:
@@ -20,6 +23,7 @@ class EventViewset(viewsets.GenericViewSet, mixins.ListModelMixin):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
     pagination_class = CustomPagination
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         """Alter defalult queryset
@@ -56,6 +60,24 @@ class EventViewset(viewsets.GenericViewSet, mixins.ListModelMixin):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(data=serializer.data)
     
+    def create(self, request : Request, *args, **kwargs):
+        """Function that handles the create view
+
+        Args:
+            request (Request): Http Request 
+
+        """
+
+        serializer = self.get_serializer(data = request.data , context = {'request' : request})
+        if serializer.is_valid():
+           self.perform_create(serializer=serializer)
+           return success_response(status_code=status.HTTP_201_CREATED, 
+                                   message='Event created',
+                                   data=serializer.data
+                                   )
+
+        else :
+            return error_validation(serializer=serializer , status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
     
         
 

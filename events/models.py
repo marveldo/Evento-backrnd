@@ -1,9 +1,12 @@
 from django.db import models
 from users.models import User
 import uuid
+
+
 # Create your models here.
 
 class EventTag(models.Model):
+     id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, primary_key=True)
      tag_name = models.CharField(max_length=550, blank=True, null=True)
 
      def __str__(self) -> str:
@@ -19,10 +22,10 @@ class Event(models.Model):
     location = models.CharField(max_length=400, blank=True , null=True)
     event_image = models.ImageField(blank=True, null=True, upload_to='images/events')
     capacity = models.IntegerField(blank=True, null=True, default=0)
+    created_by = models.CharField(blank=True, null=True, max_length=650)
     users = models.ManyToManyField(User)
     tags = models.ManyToManyField(EventTag)
     id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, primary_key=True )
 
     def __str__(self) -> str:
         return str(self.event_name)
-

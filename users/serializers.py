@@ -5,16 +5,37 @@ from rest_framework import status
 from .auth_utils import Google,register_social_auth_user
 from django.conf import settings
 from rest_framework.exceptions import AuthenticationFailed
+from events.models import Event
+from events.serializers import EventSerializer
+from django.utils import timezone
 
+today = timezone.now().date()
 
 class Userserializer(serializers.ModelSerializer):
-
+    upcoming_events_count = serializers.SerializerMethodField()
+    past_events_count = serializers.SerializerMethodField()
+    created_events_count = serializers.SerializerMethodField()
+    upcoming_events = serializers.SerializerMethodField()
+    
     class Meta: 
         model = User
-        fields = ['id','full_name','email','password','profile_img']
+        fields = ['id','full_name','email','password','profile_img','upcoming_events_count', 'past_events_count', 'created_events_count', 'upcoming_events']
         extra_kwargs = {'password': {'write_only':True}, '*':{'required': False}}
-
     
+    def get_upcoming_events_count(self, obj) :
+        count = Event.objects.filter(users = obj , start_date__gte = today  ).count()
+        return count
+    def get_past_events_count(self, obj):
+        count = Event.objects.filter(users = obj , start_date__lt = today  ).count()
+        return count
+    def get_created_events_count(self, obj):
+        count = Event.objects.filter(created_by = obj.email).count()
+        return count
+    def get_upcoming_events(self, obj) :
+        events = count = Event.objects.filter(users = obj , start_date__gte = today  )
+        serializer = EventSerializer(events , many = True)
+        return serializer.data
+
     def validate(self, attrs):
         if not self.instance and not attrs.get('full_name'):
             raise serializers.ValidationError({'full_name':'Field Cannot be empty'})
