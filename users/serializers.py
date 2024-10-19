@@ -22,18 +22,53 @@ class Userserializer(serializers.ModelSerializer):
         fields = ['id','full_name','email','password','profile_img','upcoming_events_count', 'past_events_count', 'created_events_count', 'upcoming_events']
         extra_kwargs = {'password': {'write_only':True}, '*':{'required': False}}
     
-    def get_upcoming_events_count(self, obj) :
+    def get_upcoming_events_count(self, obj : User) :
+        """Get the count of a Users Upcoming events (Events later than today) into the serializer methodfield
+
+        Args:
+            obj (User): User Model
+
+        Returns:
+            int : Count of the upcoming events
+        """
         count = Event.objects.filter(users = obj , start_date__gte = today  ).count()
         return count
-    def get_past_events_count(self, obj):
+    
+    def get_past_events_count(self, obj : User):
+        """Get the count of the past Events of a user(Events Before Today) into the serializer methodfield
+
+        Args:
+            obj (User): The User Model
+
+        Returns:
+            int : Count of the users past event
+        """
         count = Event.objects.filter(users = obj , start_date__lt = today  ).count()
         return count
-    def get_created_events_count(self, obj):
+    
+    def get_created_events_count(self, obj : User):
+        """Get the count of the Users created events for the serializer methodField
+
+        Args:
+            obj (User): User Model
+
+        Returns:
+            int : Count of Users Created events
+        """
         count = Event.objects.filter(created_by = obj.email).count()
         return count
-    def get_upcoming_events(self, obj) :
-        events = count = Event.objects.filter(users = obj , start_date__gte = today  )
-        serializer = EventSerializer(events , many = True)
+    
+    def get_upcoming_events(self, obj : User) :
+        """Returns the users Upcoming events
+
+        Args:
+            obj (User): The User model
+
+        Returns:
+            _type_: serialized data
+        """
+        upcoming_events = Event.objects.filter(users = obj , start_date__gte = today  )
+        serializer = EventSerializer(upcoming_events , many = True)
         return serializer.data
 
     def validate(self, attrs):
