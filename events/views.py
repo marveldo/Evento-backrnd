@@ -60,7 +60,7 @@ class EventViewset(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Create
                   return success_response(status_code=404, message='Detail Not Found')  
               attendees = event.users.exclude(id = event_creator.id)  
               page = self.paginate_queryset(attendees) 
-              serializer = Userserializer(page, many = True) 
+              serializer = Userserializer(page, many = True, context={'request' : request}) 
               return self.get_paginated_response(data=serializer.data)         
     
     
