@@ -67,8 +67,9 @@ class Userserializer(serializers.ModelSerializer):
         Returns:
             _type_: serialized data
         """
+        request = self.context.get('request')
         upcoming_events = Event.objects.filter(users = obj , start_date__gte = today  )
-        serializer = EventSerializer(upcoming_events , many = True)
+        serializer = EventSerializer(upcoming_events , many = True, context={'request':request})
         return serializer.data
 
     def validate(self, attrs):

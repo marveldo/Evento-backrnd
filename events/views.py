@@ -93,7 +93,7 @@ class EventViewset(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Create
             request (Request Object): Http request
         """
         event = self.get_object()
-        serializer = self.get_serializer(event , many=False)
+        serializer = self.get_serializer(event , many=False, context={'request':request})
         return success_response(
                        status_code=200,
                        message='Event Fetched Successfully',

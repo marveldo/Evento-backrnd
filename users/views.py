@@ -49,7 +49,7 @@ class UserPostViewset(viewsets.GenericViewSet, mixins.CreateModelMixin, mixins.L
             request (_type_): argument that holds exception info of the user accessing it
 
         """
-        serializer = self.get_serializer(data = request.data)
+        serializer = self.get_serializer(data = request.data, context={'request' : request})
         if serializer.is_valid():
            self.perform_create(serializer=serializer)
            user = serializer.instance
@@ -60,7 +60,7 @@ class UserPostViewset(viewsets.GenericViewSet, mixins.CreateModelMixin, mixins.L
         
     def list(self, request, *args, **kwargs):
         users = self.get_queryset()
-        serializer = self.get_serializer(users ,many = True)
+        serializer = self.get_serializer(users ,many = True, context={'request' : request})
         return success_response(
             status_code=200,
             message="succesfully listed",
@@ -72,7 +72,7 @@ class UserPostViewset(viewsets.GenericViewSet, mixins.CreateModelMixin, mixins.L
         match request.method :
             case 'GET':
                 user = request.user
-                serializer = self.get_serializer(user, many = False)
+                serializer = self.get_serializer(user, many = False, context={'request':request})
                 return success_response(
                      status_code=200,
                      message='User Retrieved Successfully',
@@ -102,7 +102,7 @@ class LoginUser(generics.GenericAPIView):
         if serializer.is_valid():
            access_token = serializer.validated_data.get('access')
            refresh_token = serializer.validated_data.get('refresh')
-           user = get_user_from_access_token(access_token=access_token)
+           user = get_user_from_access_token(access_token=access_token , request=request)
            return success_response(
             status_code=status.HTTP_200_OK,
             message='Login Successful',
@@ -137,7 +137,7 @@ class RefreshUser(generics.GenericAPIView):
             raise InvalidToken(e.args[0])
         access_token = serializer.validated_data.get('access')
         refresh_token = serializer.validated_data.get('refresh')
-        user = get_user_from_access_token(access_token=access_token)
+        user = get_user_from_access_token(access_token=access_token, request=request)
         return success_response(
             status_code=status.HTTP_200_OK,
             message='Refresh Successful',
@@ -164,12 +164,12 @@ class GoogleSigninView(generics.GenericAPIView):
             request (Request): description of backend requests
         """
        
-        serializer = self.get_serializer(data = request.data)
+        serializer = self.get_serializer(data = request.data , context={'request':request})
         if serializer.is_valid():
             access_token = serializer.validated_data['access_token']['access']
             refresh_token = serializer.validated_data['access_token']['refresh']
             status_code = serializer.validated_data['access_token']['status_code']
-            user = get_user_from_access_token(access_token=access_token)
+            user = get_user_from_access_token(access_token=access_token, request=request)
             return success_response(
             status_code=status_code,
             message='Login Successful',

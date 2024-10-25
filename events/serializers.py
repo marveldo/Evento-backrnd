@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Event,EventTag
 from users.models import User
+from django.conf import settings
 
 class Eventuserdetailserializer(serializers.ModelSerializer):
     class Meta :
@@ -50,9 +51,12 @@ class EventSerializer(serializers.ModelSerializer):
         Returns:
             _type_: serialized data
         """
+        request=self.context.get('request')
+        scheme = "https" if request.is_secure() else "http"
+        host = request.get_host()
         data =  super().to_representation(instance)
-        data['event_image'] = f'http://localhost:8000{instance.event_image.url}'
-        data['event_link'] = f'http://localhost:3000/events/{instance.id}/'
+        data['event_image'] = f"{scheme}://{host}{instance.event_image.url}"
+        data['event_link'] = f'{settings.FRONTEND_LINK}/events/{instance.id}/'
         return data
     
     def create(self, validated_data):

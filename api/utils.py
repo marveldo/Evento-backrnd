@@ -4,7 +4,7 @@ from users.models import User
 from users.serializers import Userserializer
 from rest_framework.pagination import LimitOffsetPagination
 
-def get_user_from_access_token(access_token):
+def get_user_from_access_token(access_token, request):
     """Function that handles getting a User from access_token
 
     Args:
@@ -15,7 +15,7 @@ def get_user_from_access_token(access_token):
     """
     access = AccessToken(access_token)
     user  = User.objects.get(id = access.payload.get('user_id'))
-    serializer = Userserializer(user, many=False)
+    serializer = Userserializer(user, many=False, context={'request':request})
     return serializer.data
 
 def success_response(
