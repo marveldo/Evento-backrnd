@@ -15,6 +15,7 @@ class EventTag(models.Model):
 class Event(models.Model):
     event_name = models.CharField(max_length=250, blank=True , null=True)
     date = models.DateField(blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
     start_date =  models.DateField(blank=True, null=True)
     start_time = time =models.TimeField(blank =True, null=True)
     time =models.TimeField(blank =True, null=True)

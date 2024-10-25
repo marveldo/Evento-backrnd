@@ -110,6 +110,7 @@ class GoogleSigninSerializer(serializers.Serializer):
         
         if google_user_data['aud'] != settings.GOOGLE_CLIENT_ID :
             raise AuthenticationFailed(detail='could not verify user')
+        
         email = google_user_data['email']
         picture = google_user_data['picture']
         full_name = f"{google_user_data['given_name']} {google_user_data['family_name']}"

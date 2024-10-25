@@ -4,7 +4,7 @@ from .models import User
 from django.conf import settings
 from rest_framework_simplejwt.tokens import AccessToken,RefreshToken
 from .tasks import run_send_mail
-import time
+
 
 
 

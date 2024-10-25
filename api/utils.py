@@ -87,6 +87,7 @@ class CustomPagination(LimitOffsetPagination):
         """
         limit = self.request.query_params.get('limit', self.default_limit)
         offset = self.request.query_params.get('offset', 0)
+        total_pages = (self.count + int(limit) - 1) // int(limit)
 
         try :
             int_limit = int(limit)
@@ -101,6 +102,7 @@ class CustomPagination(LimitOffsetPagination):
              'limit': int_limit,
              'offset':int_offset,
              'count': self.count,
+             'total_pages' : total_pages,
              'data':data
             })
         except :

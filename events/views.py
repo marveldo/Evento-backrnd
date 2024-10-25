@@ -3,6 +3,9 @@ from rest_framework import viewsets
 from rest_framework import mixins
 from .models import Event,EventTag
 from .serializers import EventSerializer
+from users.serializers import Userserializer
+from users.models import User
+from rest_framework.decorators import action
 from rest_framework import status
 from rest_framework.request import Request
 from api.utils import error_validation,success_response
@@ -12,7 +15,7 @@ from rest_framework import permissions
 
 
 
-class EventViewset(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.CreateModelMixin):
+class EventViewset(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin):
     """View to get all events
 
     Args:
@@ -24,6 +27,7 @@ class EventViewset(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Create
     serializer_class = EventSerializer
     pagination_class = CustomPagination
     permission_classes = [permissions.IsAuthenticated]
+
 
     def get_queryset(self):
         """Alter defalult queryset
@@ -37,6 +41,28 @@ class EventViewset(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Create
             if event_tag :
                 return queryset.filter(tags = event_tag)
         return queryset
+    
+    @action(methods=['get'], detail=True)
+    def attendees(self, request, pk = None) :
+        """Custom Action gotten to use with viewset
+
+        Args:
+            request (Request): request Object
+            pk (_type_, optional): primary key value to get the object. Defaults to None.
+        """
+        
+        match request.method :
+            case 'GET':
+              event = self.get_object()
+              try:
+                 event_creator = User.objects.get(email = event.created_by)
+              except User.DoesNotExist :
+                  return success_response(status_code=404, message='Detail Not Found')  
+              attendees = event.users.exclude(id = event_creator.id)  
+              page = self.paginate_queryset(attendees) 
+              serializer = Userserializer(page, many = True) 
+              return self.get_paginated_response(data=serializer.data)         
+    
     
     def get_paginated_response(self, data):
         """Function to overwrite the default pagination Function
@@ -52,13 +78,27 @@ class EventViewset(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Create
         """function that handles the list view
 
         Args:
-            request (Request Object): Stralette Requests
+            request (Request Object): Http Requests
 
         """
         events = self.get_queryset()
         page = self.paginate_queryset(events)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(data=serializer.data)
+    
+    def retrieve(self, request, *args, **kwargs):
+        """Function that handles the retrieve view with get a pk value
+
+        Args:
+            request (Request Object): Http request
+        """
+        event = self.get_object()
+        serializer = self.get_serializer(event , many=False)
+        return success_response(
+                       status_code=200,
+                       message='Event Fetched Successfully',
+                       data=serializer.data
+                                )
     
     def create(self, request : Request, *args, **kwargs):
         """Function that handles the create view
