@@ -14,6 +14,23 @@ services:
     depends_on :
       - postgres 
   
+  channels:
+    build:
+      context: .
+    command: daphne -b 0.0.0.0 -p 8001 evento.asgi:application
+    expose:
+      - 8001
+    volumes:
+     - .:/app
+    env_file:
+      - .env
+    depends_on:
+      - django_gunicorn
+      - redis
+    extra_hosts:
+      - "localhost:host-gateway"
+   
+  
   background_tasks:
     env_file:
       - .env
@@ -25,7 +42,16 @@ services:
       - django_gunicorn
       - postgres
 
-
+  redis:
+    image: redis:7.2.3-alpine
+    restart: always
+    ports:
+      -  "${REDIS_PORT}:6379"
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    command: redis-server --requirepass ${REDIS_PASSWORD}
 
   nginx:
     build: ./nginx
@@ -33,6 +59,7 @@ services:
       - "8000:80"
     depends_on: 
       - django_gunicorn
+      - channels
 
   postgres:
     image: postgres
@@ -58,3 +85,4 @@ services:
 volumes:
   static_files:
   postgres_data:
+  redis_data:

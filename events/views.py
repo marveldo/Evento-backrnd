@@ -4,7 +4,7 @@ from rest_framework import mixins
 from .models import Event,EventTag
 from .serializers import EventSerializer
 from users.serializers import Userserializer
-from users.models import User
+from users.models import User,Notification
 from rest_framework.decorators import action
 from rest_framework import status
 from rest_framework.request import Request
@@ -42,8 +42,8 @@ class EventViewset(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Create
                 return queryset.filter(tags = event_tag)
         return queryset
     
-    @action(methods=['get'], detail=True)
-    def attendees(self, request, pk = None) :
+    @action(methods=['get','post'], detail=True)
+    def attendees(self, request : Request, pk = None) :
         """Custom Action gotten to use with viewset
 
         Args:
@@ -52,16 +52,40 @@ class EventViewset(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Create
         """
         
         match request.method :
+            
             case 'GET':
+              
               event = self.get_object()
               try:
                  event_creator = User.objects.get(email = event.created_by)
               except User.DoesNotExist :
                   return success_response(status_code=404, message='Detail Not Found')  
-              attendees = event.users.exclude(id = event_creator.id)  
-              page = self.paginate_queryset(attendees) 
+              attendees = event.users.exclude(id = event_creator.id)
+              page = self.paginate_queryset(attendees)
               serializer = Userserializer(page, many = True, context={'request' : request}) 
-              return self.get_paginated_response(data=serializer.data)         
+              return self.get_paginated_response(data=serializer.data)  
+            
+            case 'POST':
+                event = self.get_object()
+                try :
+                    user = User.objects.get(email = request.data.get('email'))
+                    event_creator = User.objects.get(email = event.created_by)
+                except User.DoesNotExist :
+                    return success_response(status_code=404, message='Detail Not Found')
+                if user in event.users.all():
+                    return success_response(status_code=400, message='User Already registered')
+                event.users.add(user)
+                Notification.objects.create(
+                    user = event_creator,
+                    message= f'{user.email} just registered for your event'
+                )
+                attendees = event.users.exclude(id = event_creator.id) 
+                page = self.paginate_queryset(attendees) 
+                serializer = Userserializer(page, many = True, context={'request' : request}) 
+                return self.get_paginated_response(data=serializer.data)  
+                
+                
+
     
     
     def get_paginated_response(self, data):

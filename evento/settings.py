@@ -36,6 +36,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -45,10 +46,12 @@ INSTALLED_APPS = [
     "api",
     "users",
     "events",
+    "ws",
     "rest_framework",
     "corsheaders",
     "background_task",
-    "rest_framework_simplejwt.token_blacklist"
+    "rest_framework_simplejwt.token_blacklist",
+   
 ]
 
 REST_FRAMEWORK = {
@@ -57,6 +60,7 @@ REST_FRAMEWORK = {
         
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    
      'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
      'PAGE_SIZE': 100
     
@@ -87,8 +91,8 @@ CORS_ALLOWED_ORIGINS = [
 CSRF_TRUSTED_ORIGINS = ["http://localhost:8000",]
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=30),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=90),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
     "UPDATE_LAST_LOGIN": False,
@@ -151,6 +155,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "evento.wsgi.application"
+ASGI_APPLICATION = "evento.asgi.application"
 
 
 # Database
@@ -174,7 +179,18 @@ DATABASES = {
     }
 }
 
-
+REDIS_HOST=os.getenv('REDIS_HOST')
+REDIS_PORT=os.getenv('REDIS_PORT')
+REDIS_PASSWORD=os.getenv('REDIS_PASSWORD')
+REDIS_URL=F"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/"
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [REDIS_URL],
+        },
+    },
+}
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 

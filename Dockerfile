@@ -13,10 +13,13 @@ ENV PYTHONPATH=/app
 WORKDIR /app
 
 #copy the requirements.txt file and install with pip
+
 COPY ./requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir --upgrade -r requirements.txt
 
 COPY . /app/
+
+
 
 # Command to run the application
 COPY ./entrypoint.sh /app/entrypoint.sh

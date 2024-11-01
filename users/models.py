@@ -56,4 +56,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['full_name']
 
+class Notification(models.Model) :
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    message = models.TextField()
+
+    def __str__(self) -> str:
+        return f'{self.user.email} notification'
 
