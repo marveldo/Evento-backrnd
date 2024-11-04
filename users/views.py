@@ -10,12 +10,14 @@ from .serializers import *
 from api.utils import success_response,error_validation,get_user_from_access_token
 from .tasks import run_send_mail
 from rest_framework.decorators import action
+from rest_framework import renderers
 # Create your views here.
 
 
 
 class HomeView(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]
+    renderer_classes = [renderers.JSONRenderer]
     
     
     def get(self,request):
@@ -31,6 +33,7 @@ class UserPostViewset(viewsets.GenericViewSet, mixins.CreateModelMixin, mixins.L
     """
     queryset = User.objects.all()
     serializer_class = Userserializer
+    renderer_classes = [renderers.JSONRenderer]
     
     def get_permissions(self):
         permission_classes = self.permission_classes
@@ -88,7 +91,7 @@ class LoginUser(generics.GenericAPIView):
 
     """
     serializer_class = CustomTokenObtainPairSerializer
-
+    renderer_classes = [renderers.JSONRenderer]
 
     def post(self,request):
         """This handles the post request and validations
@@ -121,6 +124,7 @@ class RefreshUser(generics.GenericAPIView):
 
    """
     serializer_class = TokenRefreshSerializer
+    renderer_classes = [renderers.JSONRenderer]
     www_authenticate_realm = "api"
     def get_authenticate_header(self, request) -> str:
         return '{} realm="{}"'.format(
@@ -156,6 +160,7 @@ class GoogleSigninView(generics.GenericAPIView):
     """
 
     serializer_class = GoogleSigninSerializer
+    renderer_classes = [renderers.JSONRenderer]
 
     def post(self,request):
         """function that handles post requests in the view

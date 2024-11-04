@@ -10,6 +10,7 @@ from rest_framework import status
 from rest_framework.request import Request
 from api.utils import error_validation,success_response
 from rest_framework import permissions
+from rest_framework import renderers
 
 # Create your views here.
 
@@ -27,7 +28,7 @@ class EventViewset(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Create
     serializer_class = EventSerializer
     pagination_class = CustomPagination
     permission_classes = [permissions.IsAuthenticated]
-
+    renderer_classes =[renderers.JSONRenderer]
 
     def get_queryset(self):
         """Alter defalult queryset
