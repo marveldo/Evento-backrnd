@@ -63,7 +63,7 @@ services:
       - channels
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt:ro  # Mount certificates as read-only
-      - ./nginx.conf:/etc/nginx/nginx.conf    # Mount your Nginx config
+   
 
   postgres:
     image: postgres
