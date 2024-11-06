@@ -8,7 +8,7 @@ services:
       - .env
     build:
       context: .
-    entrypoint : ["./entrypoint.sh"]
+    entrypoint : ["./deveentr.sh"]
     expose:
       - 8000
     depends_on :
@@ -57,15 +57,13 @@ services:
     build:
       context: ./nginx
       args:
-        CONFIG_FILE: nginx.prod.conf.template
+        CONFIG_FILE: nginx.dev.conf.template
     ports:
       - "8000:80"
-      - "443:443"
     depends_on: 
       - django_gunicorn
       - channels
-    volumes:
-      - /etc/letsencrypt:/etc/letsencrypt:ro  # Mount certificates as read-only
+
    
 
   postgres:
