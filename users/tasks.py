@@ -18,7 +18,7 @@ def send_welcome_email(user):
 
     context ={
         'user' : user,
-        'url' : 'http://localhost:3000/login'
+        'url' : f'{settings.FRONTEND_LINK}/login'
     }
 
     html_message = render_to_string('welcome.html', context)

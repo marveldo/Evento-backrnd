@@ -51,11 +51,9 @@ class EventSerializer(serializers.ModelSerializer):
         Returns:
             _type_: serialized data
         """
-        request=self.context.get('request')
-        scheme = "https" if request.is_secure() else "http"
-        host = request.get_host()
+        
         data =  super().to_representation(instance)
-        data['event_image'] = f"{scheme}://{host}{instance.event_image.url}"
+        
         data['event_link'] = f'{settings.FRONTEND_LINK}/events/{instance.id}/'
         return data
     

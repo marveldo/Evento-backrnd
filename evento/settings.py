@@ -30,8 +30,9 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['34.203.35.138', 'underdog.ddns.net']
-
+if not DEBUG :
+    ALLOWED_HOSTS = ['34.203.35.138', 'underdog.ddns.net']
+ALLOWED_HOSTS = []
 
 # Application definition
 
@@ -51,6 +52,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "background_task",
     "rest_framework_simplejwt.token_blacklist",
+    'storages'
    
 ]
 
@@ -226,6 +228,27 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 STATIC_URL = "/app/static/" 
+
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
+AWS_S3_FILE_OVERWRITE = False
+AWS_S3_SIGNATURE_VERSION = os.getenv('AWS_S3_SIGNATURE_VERSION')
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+STORAGES = {
+
+    # Media file (image) management  
+    "default": {
+        "BACKEND": "storages.backends.s3boto3.S3StaticStorage",
+    },
+   
+    # CSS and JS file management
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
+
 
 
 AUTH_USER_MODEL = 'users.User'
