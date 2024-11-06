@@ -28,11 +28,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG =False
 
 if not DEBUG :
     ALLOWED_HOSTS = ['34.203.35.138', 'underdog.ddns.net']
-ALLOWED_HOSTS = []
+else:
+    ALLOWED_HOSTS = []
 
 # Application definition
 
