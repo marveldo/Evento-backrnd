@@ -134,6 +134,9 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
 }
 
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 ROOT_URLCONF = "evento.urls"
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
