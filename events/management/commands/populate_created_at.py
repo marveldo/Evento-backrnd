@@ -6,6 +6,6 @@ class Command(BaseCommand):
     help = "Populate created_at field for existing records in Events"
 
     def handle(self, *args, **options):
-        updated_count = Event.objects.all().delete()
+        updated_count = Event.objects.all()
         self.stdout.write(self.style.SUCCESS(f'Successfully updated {updated_count} records with created_at'))
 
