@@ -40,7 +40,7 @@ class EventViewset(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Create
         if self.request.GET.get('tag'):
             event_tag = EventTag.objects.filter(tag_name__icontains=self.request.GET.get('tag')).first()
             if event_tag :
-                return queryset.filter(tags = event_tag).order_by('-created')
+                return queryset.filter(tags = event_tag)
             elif self.request.GET.get('tag') == 'Recommended':
                 return queryset.filter(location__icontains = self.request.user.location)
         return queryset
