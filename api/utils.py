@@ -1,10 +1,61 @@
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken,RefreshToken
-from users.models import User
+from users.models import User,DeviceInfo
 from users.serializers import Userserializer
 from rest_framework.pagination import LimitOffsetPagination
+from django.http import HttpRequest
+import geocoder
+from user_agents import parse
 
-def get_user_from_access_token(access_token, request):
+def get_ip(request: HttpRequest) -> str:
+    """Returns the ip address of the user
+
+    Args:
+        request (HttpRequest): HTTP request object
+
+    Returns:
+        str: ip address of the user
+    """
+    ip_adress = request.META.get('HTTP_X_FORWARDED_FOR')
+    if not ip_adress :
+        ip_adress = request.META.get('REMOTE_ADDR')
+    return ip_adress
+
+def get_location(ip_adress : str) -> str :
+    """Function to get location from ip address
+
+    Args:
+        ip_adress (str): Ip Address passed into the function
+
+    Returns:
+        str: returns the location of the user country, city
+    """
+    location = geocoder.ip(ip_adress)
+    country = location.country
+    city = location.city
+    return f'{country},{city}'
+
+def get_device_info(request : HttpRequest):
+    """Function To get device information
+
+    Args:
+        request (HttpRequest): Request Object
+
+    Returns:
+        _type_: device information
+    """
+    unparsed_useragent = request.META.get('HTTP_USER_AGENT', '')
+    user_agent = parse(unparsed_useragent)
+    device_type = "Mobile" if user_agent.is_mobile else "Tablet" if user_agent.is_tablet else "PC"
+    device_name = user_agent.device.family
+    device_os = user_agent.os.family
+    
+    
+    return device_type , device_name , device_os
+
+
+
+def get_user_from_access_token(access_token : str, refresh_token : str , request, is_refreshing : bool = False):
     """Function that handles getting a User from access_token
 
     Args:
@@ -15,7 +66,24 @@ def get_user_from_access_token(access_token, request):
     """
     access = AccessToken(access_token)
     user  = User.objects.get(id = access.payload.get('user_id'))
-    serializer = Userserializer(user, many=False, context={'request':request})
+    user_ip = get_ip(request)
+    device = None
+    if not is_refreshing:
+        user_location = get_location(user_ip)
+        device_type , device_name , device_os = get_device_info(request)
+        deviceinfo = DeviceInfo.objects.create(
+               user = user,
+               ip_address = user_ip,
+               device_name = device_name,
+               device_type = device_type,
+               device_os = device_os,
+               access_token = access_token,
+               refresh_token = refresh_token
+            )
+        device = deviceinfo.id
+        user.location = user_location
+        user.save()
+    serializer = Userserializer(user, many=False, context={'request':request , 'device_id': device })
     return serializer.data
 
 def success_response(

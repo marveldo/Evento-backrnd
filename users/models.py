@@ -45,6 +45,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_admin = models.BooleanField(default=False)
     profile_img  = models.CharField(max_length=200, default=IMAGE)
     auth_provider = models.CharField(max_length=50, default="email")
+    location = models.CharField(max_length=500, blank=True, null=True)
     id = models.UUIDField(default=uuid.uuid4, editable=False , unique=True , primary_key=True)
 
 
@@ -62,4 +63,18 @@ class Notification(models.Model) :
 
     def __str__(self) -> str:
         return f'{self.user.email} notification'
+    
 
+
+class DeviceInfo(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    ip_address = models.CharField(max_length=120, blank = True , null=True)
+    device_name = models.CharField(max_length=120 , blank=True, null=True)
+    device_os = models.CharField(max_length=600, blank=True, null=True)
+    device_type = models.CharField(max_length=600, blank=True, null=True)
+    access_token = models.CharField(max_length=1500, blank=True, null=True)
+    refresh_token=models.CharField(max_length=1500, blank=True, null=True)
+    id = models.UUIDField(default=uuid.uuid4, editable=False , unique=True , primary_key=True)
+    
+    def __str__(self) -> str:
+        return str(self.user.email)

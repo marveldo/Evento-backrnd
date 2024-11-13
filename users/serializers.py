@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User
+from .models import User,DeviceInfo
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import status
 from .auth_utils import Google,register_social_auth_user
@@ -8,6 +8,10 @@ from rest_framework.exceptions import AuthenticationFailed
 from events.models import Event
 from events.serializers import EventSerializer
 from django.utils import timezone
+from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
+from rest_framework_simplejwt.exceptions import TokenError
+
+
 
 today = timezone.now().date()
 
@@ -19,7 +23,7 @@ class Userserializer(serializers.ModelSerializer):
     
     class Meta: 
         model = User
-        fields = ['id','full_name','email','password','profile_img','upcoming_events_count', 'past_events_count', 'created_events_count', 'upcoming_events']
+        fields = ['id','full_name','email','password','profile_img','upcoming_events_count', 'past_events_count', 'created_events_count', 'upcoming_events', 'location']
         extra_kwargs = {'password': {'write_only':True}, '*':{'required': False}}
     
     def get_upcoming_events_count(self, obj : User) :
@@ -89,7 +93,15 @@ class Userserializer(serializers.ModelSerializer):
         user.set_password(password)
         user.save()
         return user
-
+    
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        device_id = self.context.get('device_id')
+        if device_id is None :
+            return data
+        data['device_id'] = device_id
+        return data
+    
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     default_error_messages = {
           "no_active_account": {
@@ -117,3 +129,30 @@ class GoogleSigninSerializer(serializers.Serializer):
         full_name = f"{google_user_data['given_name']} {google_user_data['family_name']}"
         provider = 'google'
         return register_social_auth_user(provider=provider , email=email, full_name=full_name, picture=picture)
+    
+class LogoutSerializer(serializers.Serializer):
+    device_id = serializers.CharField(required = True)
+    refresh_token = serializers.CharField(required = True)
+
+    def validate(self, attrs):
+        refresh = attrs.get('refresh_token')
+        device_id = attrs.get('device_id')
+
+        
+        try:
+            refresh_derived = RefreshToken(refresh)
+        except TokenError :
+            refresh_derived = None
+            raise serializers.ValidationError(detail='Token has been blacklisted', code=401)
+        if refresh_derived is not None :
+            refresh_derived.blacklist()
+        try:
+           device = DeviceInfo.objects.get(id = device_id)
+        except DeviceInfo.DoesNotExist :
+            device = None
+        if device is not None :
+            device.delete()
+        
+        return {}
+    
+

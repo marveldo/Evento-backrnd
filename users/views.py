@@ -11,6 +11,7 @@ from api.utils import success_response,error_validation,get_user_from_access_tok
 from .tasks import run_send_mail
 from rest_framework.decorators import action
 from rest_framework import renderers
+
 # Create your views here.
 
 
@@ -105,7 +106,7 @@ class LoginUser(generics.GenericAPIView):
         if serializer.is_valid():
            access_token = serializer.validated_data.get('access')
            refresh_token = serializer.validated_data.get('refresh')
-           user = get_user_from_access_token(access_token=access_token , request=request)
+           user = get_user_from_access_token(access_token=access_token , request=request, refresh_token=refresh_token)
            return success_response(
             status_code=status.HTTP_200_OK,
             message='Login Successful',
@@ -139,9 +140,18 @@ class RefreshUser(generics.GenericAPIView):
             serializer.is_valid(raise_exception = True)
         except TokenError as e :
             raise InvalidToken(e.args[0])
+        
+        try :
+           device = DeviceInfo.objects.get(id = request.data.get('device_id'))
+        except DeviceInfo.DoesNotExist :
+            device = None
         access_token = serializer.validated_data.get('access')
         refresh_token = serializer.validated_data.get('refresh')
-        user = get_user_from_access_token(access_token=access_token, request=request)
+        if device is not None :
+            device.access_token = access_token
+            device.refresh_token = refresh_token
+            device.save()
+        user = get_user_from_access_token(access_token=access_token, request=request, refresh_token=refresh_token, is_refreshing=True)
         return success_response(
             status_code=status.HTTP_200_OK,
             message='Refresh Successful',
@@ -149,6 +159,7 @@ class RefreshUser(generics.GenericAPIView):
             refresh_token=refresh_token,
             data=user
         )
+
 
         
 
@@ -174,7 +185,7 @@ class GoogleSigninView(generics.GenericAPIView):
             access_token = serializer.validated_data['access_token']['access']
             refresh_token = serializer.validated_data['access_token']['refresh']
             status_code = serializer.validated_data['access_token']['status_code']
-            user = get_user_from_access_token(access_token=access_token, request=request)
+            user = get_user_from_access_token(access_token=access_token, request=request, refresh_token=refresh_token)
             return success_response(
             status_code=status_code,
             message='Login Successful',
@@ -184,6 +195,25 @@ class GoogleSigninView(generics.GenericAPIView):
            )
         else:
             return error_validation(serializer=serializer, status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
+        
+
+class LogoutView(generics.GenericAPIView):
+    """View for Logging a user out
+
+    Args:
+        generics (_type_): GenericApiviewclass
+    """
+
+    serializer_class = LogoutSerializer
+    renderer_classes = [renderers.JSONRenderer]
+
+    def post(self,request):
+        serializer = self.get_serializer(data = request.data)
+        if serializer.is_valid():
+            return success_response(status_code=200, message='Token blacklisted')
+        else :
+            return error_validation(serializer=serializer , status_code= status.HTTP_422_UNPROCESSABLE_ENTITY)
+
 
         
     

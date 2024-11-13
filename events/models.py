@@ -1,6 +1,7 @@
 from django.db import models
 from users.models import User
 import uuid
+from django.utils import timezone
 
 
 # Create your models here.
@@ -26,7 +27,10 @@ class Event(models.Model):
     created_by = models.CharField(blank=True, null=True, max_length=650)
     users = models.ManyToManyField(User)
     tags = models.ManyToManyField(EventTag)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
     id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, primary_key=True )
 
     def __str__(self) -> str:
         return str(self.event_name)
+    
+
