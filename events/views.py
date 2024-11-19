@@ -42,7 +42,8 @@ class EventViewset(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Create
             if event_tag :
                 return queryset.filter(tags = event_tag)
             elif self.request.GET.get('tag') == 'Recommended':
-                return queryset.filter(location__icontains = self.request.user.location)
+                user_city = self.request.user.location.split(",")[1].strip()
+                return queryset.filter(location__icontains = user_city)
         return queryset
     
     @action(methods=['get','post'], detail=True)
