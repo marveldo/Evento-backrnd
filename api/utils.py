@@ -19,6 +19,8 @@ def get_ip(request: HttpRequest) -> str:
     ip_adress = request.META.get('HTTP_X_FORWARDED_FOR')
     if not ip_adress :
         ip_adress = request.META.get('REMOTE_ADDR')
+    else :
+        ip_adress = ip_adress.split(',')[0] 
     return ip_adress
 
 def get_location(ip_adress : str) -> str :
