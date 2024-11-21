@@ -10,7 +10,9 @@ from events.serializers import EventSerializer
 from django.utils import timezone
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
-
+from django.core.files.storage import default_storage
+import uuid
+import os
 
 
 today = timezone.now().date()
@@ -20,10 +22,11 @@ class Userserializer(serializers.ModelSerializer):
     past_events_count = serializers.SerializerMethodField()
     created_events_count = serializers.SerializerMethodField()
     upcoming_events = serializers.SerializerMethodField()
+    profile_pic = serializers.ImageField(write_only = True, required=False)
     
     class Meta: 
         model = User
-        fields = ['id','full_name','email','password','profile_img','upcoming_events_count', 'past_events_count', 'created_events_count', 'upcoming_events', 'location']
+        fields = ['id','full_name','email','password','profile_img','upcoming_events_count', 'past_events_count', 'created_events_count', 'upcoming_events', 'location', 'profile_pic', 'website', 'instagram', 'facebook', 'twitter', 'bio']
         extra_kwargs = {'password': {'write_only':True}, '*':{'required': False}}
     
     def get_upcoming_events_count(self, obj : User) :
@@ -93,6 +96,24 @@ class Userserializer(serializers.ModelSerializer):
         user.set_password(password)
         user.save()
         return user
+    
+    def update(self, instance : User, validated_data):
+        image = validated_data.pop('profile_pic', None)
+
+        for name , value in validated_data.items():
+            setattr(instance , name , value)
+        
+        if image is not None :
+            extension = os.path.splitext(image.name)[1] 
+            unique_filename = f"{uuid.uuid4().hex}{extension}" 
+            file_path = default_storage.save(f'images/user/{unique_filename}', image)
+            instance.profile_img = default_storage.url(file_path)
+        
+        instance.save()
+
+        return instance
+            
+
     
     def to_representation(self, instance):
         data = super().to_representation(instance)

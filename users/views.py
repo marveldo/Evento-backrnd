@@ -24,7 +24,7 @@ class HomeView(generics.GenericAPIView):
     def get(self,request):
         return success_response(status_code=200,message='welcome')
 
-class UserPostViewset(viewsets.GenericViewSet, mixins.CreateModelMixin, mixins.ListModelMixin):
+class UserPostViewset(viewsets.GenericViewSet, mixins.CreateModelMixin, mixins.ListModelMixin, mixins.UpdateModelMixin):
     """Class based View for creating and Updating a user
 
     Args:
@@ -82,8 +82,20 @@ class UserPostViewset(viewsets.GenericViewSet, mixins.CreateModelMixin, mixins.L
                      message='User Retrieved Successfully',
                      data=serializer.data
                 )
+            case 'PUT':
+                user = request.user
+                serializer = self.get_serializer(user , request.data, partial = True)
+                if serializer.is_valid():
+                    self.perform_update(serializer=serializer)
+                    return success_response(status_code=200, message='Update Successfull', data=serializer.data)
+                else :
+                    return error_validation(serializer=serializer , status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
          
-
+            case 'DELETE' :
+                user : User = request.user
+                user.delete()
+                return success_response(status_code=204, message='User Deleted')
+            
 class LoginUser(generics.GenericAPIView):
     """Class Based View to Login a user
 

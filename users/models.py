@@ -46,7 +46,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     profile_img  = models.CharField(max_length=200, default=IMAGE)
     auth_provider = models.CharField(max_length=50, default="email")
     location = models.CharField(max_length=500, blank=True, null=True)
+    bio = models.TextField(blank = True , null=True)
     id = models.UUIDField(default=uuid.uuid4, editable=False , unique=True , primary_key=True)
+    website = models.CharField(max_length=200, blank = True , null=True)
+    facebook = models.CharField(max_length=200, blank = True , null=True)
+    twitter = models.CharField(max_length=200, blank = True , null=True)
+    instagram = models.CharField(max_length=200, blank = True , null=True)
 
 
     def __str__(self):
