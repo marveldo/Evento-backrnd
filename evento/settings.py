@@ -31,7 +31,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = False
 
 if not DEBUG :
-    ALLOWED_HOSTS = ['34.203.35.138', 'underdog.ddns.net']
+    ALLOWED_HOSTS = ['underdog.ddns.net']
 else:
     ALLOWED_HOSTS = []
 

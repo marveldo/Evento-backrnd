@@ -3,7 +3,7 @@ from channels.db import database_sync_to_async
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework_simplejwt.exceptions import TokenError
 from django.contrib.auth.models import AnonymousUser
-from users.models import User
+from users.models import User , DeviceInfo
 from urllib.parse import parse_qs
 import logging
 
@@ -11,7 +11,7 @@ import logging
 
 
 @database_sync_to_async
-def get_user(access_token : str) -> User :
+def get_user(access_token : str) -> tuple[User ,str] :
 
     """Function to retrieve the user from access_token
 
@@ -24,9 +24,11 @@ def get_user(access_token : str) -> User :
     try:
         user_id = AccessToken(access_token).payload.get('user_id')
         user = User.objects.get(id = user_id)
-        return user
-    except (User.DoesNotExist, TokenError)  : 
-        return AnonymousUser()
+        device = DeviceInfo.objects.get(access_token = access_token)
+        device_id = device.id
+        return user , device_id
+    except (User.DoesNotExist, TokenError, DeviceInfo.DoesNotExist)  : 
+        return AnonymousUser() , None
     
 
 class CustomTokenAuthMiddleware(BaseMiddleware):
@@ -52,8 +54,9 @@ class CustomTokenAuthMiddleware(BaseMiddleware):
         access_token = query_params.get('access_token',[None])[0]
         if access_token is None :
             scope['user'] = AnonymousUser()
+            scope['device_id'] = None
         else :
-            scope['user'] = await get_user(access_token)
+            scope['user'] , scope['device_id'] = await get_user(access_token)
         return await super().__call__(scope, receive, send)
     
     
