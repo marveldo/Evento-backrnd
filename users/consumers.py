@@ -10,6 +10,7 @@ class NotificationsConsumer(AsyncWebsocketConsumer):
         self.second_group_name = 'logout'
         if user.is_anonymous:
             logging.info('Not Authenticated')
+            await self.accept()
             await self.close(code=4401, reason='Authentication error')
         else :
             self.group_name=f'notifications_{user.id}'
