@@ -5,7 +5,7 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from .models import User
-# from .serializers import Userserializer
+
 from rest_framework_simplejwt.tokens import AccessToken,RefreshToken
 
 def send_welcome_email(user):
@@ -56,7 +56,7 @@ def run_send_mail(user_id):
         user = User.objects.get(id=str(user_id))
         send_welcome_email(user=user)
     except User.DoesNotExist :
-        print('failed')
+        pass
     
     
    

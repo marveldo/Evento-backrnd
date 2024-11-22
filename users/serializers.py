@@ -78,6 +78,7 @@ class Userserializer(serializers.ModelSerializer):
         upcoming_events = Event.objects.filter(users = obj , start_date__gte = today  )
         serializer = EventSerializer(upcoming_events , many = True, context={'request':request})
         return serializer.data
+        
 
     def validate(self, attrs):
         if not self.instance and not attrs.get('full_name'):
@@ -88,6 +89,9 @@ class Userserializer(serializers.ModelSerializer):
             raise serializers.ValidationError({'password':'Password cannot be empty'})
         return super().validate(attrs)
     
+
+    
+   
     def create(self, validated_data):
         password = validated_data.pop('password')
         user = User.objects.create(
@@ -99,10 +103,14 @@ class Userserializer(serializers.ModelSerializer):
     
     def update(self, instance : User, validated_data):
         image = validated_data.pop('profile_pic', None)
+        password = validated_data.pop('password', None)
 
         for name , value in validated_data.items():
             setattr(instance , name , value)
-        
+
+        if password is not None :
+            instance.set_password(password)
+
         if image is not None :
             extension = os.path.splitext(image.name)[1] 
             unique_filename = f"{uuid.uuid4().hex}{extension}" 
@@ -176,4 +184,11 @@ class LogoutSerializer(serializers.Serializer):
         
         return {}
     
+class DeviceSerializer(serializers.ModelSerializer):
 
+    class Meta :
+        model = DeviceInfo
+        exclude = ['access_token', 'refresh_token']
+    
+
+    
