@@ -8,6 +8,7 @@ services:
       - .env
     build:
       context: .
+    restart: always
     entrypoint : ["./entrypoint.sh"]
     expose:
       - 8000
@@ -17,6 +18,7 @@ services:
   channels:
     build:
       context: .
+    restart: always
     command: daphne -b 0.0.0.0 -p 8001 evento.asgi:application
     expose:
       - 8001
@@ -34,6 +36,7 @@ services:
   background_tasks:
     env_file:
       - .env
+    restart: always
     build: .
     volumes:
       - .:/app
@@ -58,6 +61,7 @@ services:
       context: ./nginx
       args:
         CONFIG_FILE: nginx.prod.conf.template
+    restart: always
     ports:
       - "8000:80"
       - "443:443"
@@ -72,6 +76,7 @@ services:
     image: postgres
     expose:
       - 5432
+    restart: always
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
@@ -81,6 +86,7 @@ services:
   
   pgadmin:
     image: dpage/pgadmin4
+    restart: always
     environment:
       PGADMIN_DEFAULT_EMAIL: ${DEFAULT_PGADMIN_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${DEFAULT_PGADMIN_PASSWORD}
